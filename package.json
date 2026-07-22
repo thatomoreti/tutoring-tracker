@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"no tests specified\" && exit 0"
+    "test": "echo \"no tests specified\" && exit 0",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
