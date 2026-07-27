@@ -61,63 +61,79 @@ export default function LearnersPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Learners</h1>
+    <div className="max-w-5xl mx-auto p-8">
+      <div className="flex justify-between items-end mb-8 pb-4 border-b-2 border-gold">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-gold font-semibold mb-1">Rutegang Tutoring</p>
+          <h1 className="text-3xl font-display font-bold text-ink">Learners</h1>
+        </div>
         {!showForm && (
-          <button onClick={handleAdd} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+          <button
+            onClick={handleAdd}
+            className="bg-ink text-white px-5 py-2.5 rounded-sm hover:bg-ink/90 transition font-medium text-sm tracking-wide"
+          >
             + Add Learner
           </button>
         )}
       </div>
 
-      {error && <div className="bg-red-50 text-red-700 px-4 py-2 rounded-md mb-4">{error}</div>}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 text-red-800 px-4 py-3 mb-6 text-sm">
+          {error}
+        </div>
+      )}
 
       {showForm && (
-        <div className="mb-6">
-<LearnerForm
-  key={editingLearner?.learner_id ?? 'new'}
-  initialData={editingLearner}
-  onSubmit={handleSubmit}
-  onCancel={() => { setShowForm(false); setEditingLearner(null); }}
-/>
+        <div className="mb-8">
+          <LearnerForm
+            key={editingLearner?.learner_id ?? 'new'}
+            initialData={editingLearner}
+            onSubmit={handleSubmit}
+            onCancel={() => { setShowForm(false); setEditingLearner(null); }}
+          />
         </div>
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-slate/60 italic">Loading learners...</p>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white border border-ink/10 rounded-sm overflow-hidden shadow-sm">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-600">Name</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-600">Grade</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-600">Status</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-600">Start Date</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-600">Actions</th>
+            <thead>
+              <tr className="border-b-2 border-ink/10 bg-paper">
+                <th className="px-5 py-3 text-xs uppercase tracking-wider font-semibold text-ink/70">Name</th>
+                <th className="px-5 py-3 text-xs uppercase tracking-wider font-semibold text-ink/70">Grade</th>
+                <th className="px-5 py-3 text-xs uppercase tracking-wider font-semibold text-ink/70">Status</th>
+                <th className="px-5 py-3 text-xs uppercase tracking-wider font-semibold text-ink/70">Start Date</th>
+                <th className="px-5 py-3 text-xs uppercase tracking-wider font-semibold text-ink/70">Actions</th>
               </tr>
             </thead>
             <tbody>
               {learners.map((l) => (
-                <tr key={l.learner_id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3">{l.first_name} {l.last_name}</td>
-                  <td className="px-4 py-3">{l.grade_level || '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${l.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                      {l.status}
+                <tr key={l.learner_id} className="border-b border-ink/5 last:border-0 hover:bg-paper transition">
+                  <td className="px-5 py-4 font-medium text-ink">{l.first_name} {l.last_name}</td>
+                  <td className="px-5 py-4 text-sm">{l.grade_level || '—'}</td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-block px-2.5 py-1 text-xs font-semibold border rounded-sm -rotate-1 ${
+                      l.status === 'active'
+                        ? 'border-sage text-sage bg-sage/5'
+                        : 'border-gray-300 text-gray-400 bg-gray-50'
+                    }`}>
+                      {l.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{new Date(l.start_date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 space-x-3">
-                    <button onClick={() => handleEdit(l)} className="text-blue-600 hover:underline text-sm">Edit</button>
-                    <button onClick={() => handleDelete(l.learner_id)} className="text-red-600 hover:underline text-sm">Delete</button>
+                  <td className="px-5 py-4 text-sm text-slate/70">{new Date(l.start_date).toLocaleDateString()}</td>
+                  <td className="px-5 py-4 space-x-4 text-sm">
+                    <button onClick={() => handleEdit(l)} className="text-ink hover:text-gold font-medium transition">Edit</button>
+                    <button onClick={() => handleDelete(l.learner_id)} className="text-red-700/70 hover:text-red-700 font-medium transition">Delete</button>
                   </td>
                 </tr>
               ))}
               {learners.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-4 py-6 text-center text-gray-400">No learners yet.</td>
+                  <td colSpan="5" className="px-5 py-12 text-center text-slate/40 italic">
+                    No learners yet — add your first one to get started.
+                  </td>
                 </tr>
               )}
             </tbody>

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
 const NAME_REGEX = /^[A-Za-z'\-\s]+$/;
-const PHONE_REGEX = /^(\+27|0)[6-8][0-9]{8}$/; // South African mobile format, after normalization
+const PHONE_REGEX = /^(\+27|0)[6-8][0-9]{8}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_NAME_LENGTH = 50;
-const MIN_START_DATE = '2000-01-01'; // sensible floor — no tutoring center predates this
+const MIN_START_DATE = '2000-01-01';
 
 function extractGradeNumber(gradeLevel) {
   if (!gradeLevel) return '';
@@ -12,7 +12,6 @@ function extractGradeNumber(gradeLevel) {
   return match ? match[0] : '';
 }
 
-// Strips spaces/dashes so "082 123 4567" and "082-123-4567" both normalize to "0821234567"
 function normalizePhone(value) {
   return value.replace(/[\s\-]/g, '');
 }
@@ -127,14 +126,18 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
   };
 
   const inputClass = (field) =>
-    `w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 ${
-      errors[field] ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'
+    `w-full border-b-2 px-1 py-2 bg-transparent focus:outline-none transition ${
+      errors[field]
+        ? 'border-red-400 focus:border-red-500'
+        : 'border-ink/15 focus:border-gold'
     }`;
 
+  const labelClass = 'block text-xs uppercase tracking-wider font-semibold text-ink/60 mb-1.5';
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4 max-w-md">
+    <form onSubmit={handleSubmit} className="bg-white border border-ink/10 p-8 rounded-sm shadow-sm space-y-5 max-w-md mx-auto">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+        <label className={labelClass}>First Name</label>
         <input
           name="first_name"
           value={form.first_name}
@@ -142,11 +145,11 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
           maxLength={MAX_NAME_LENGTH}
           className={inputClass('first_name')}
         />
-        {errors.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}
+        {errors.first_name && <p className="text-red-600 text-xs mt-1.5">{errors.first_name}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+        <label className={labelClass}>Last Name</label>
         <input
           name="last_name"
           value={form.last_name}
@@ -154,27 +157,27 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
           maxLength={MAX_NAME_LENGTH}
           className={inputClass('last_name')}
         />
-        {errors.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}
+        {errors.last_name && <p className="text-red-600 text-xs mt-1.5">{errors.last_name}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500 text-sm">Grade</span>
+        <label className={labelClass}>Grade</label>
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm text-slate/50 font-medium">Grade</span>
           <input
             name="grade_level_number"
             inputMode="numeric"
             value={form.grade_level_number}
             onChange={handleGradeChange}
-            placeholder="e.g. 11"
-            className={`${inputClass('grade_level_number')} max-w-[80px]`}
+            placeholder="11"
+            className={`${inputClass('grade_level_number')} max-w-[60px] text-center`}
           />
         </div>
-        {errors.grade_level_number && <p className="text-red-500 text-sm mt-1">{errors.grade_level_number}</p>}
+        {errors.grade_level_number && <p className="text-red-600 text-xs mt-1.5">{errors.grade_level_number}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Guardian Contact</label>
+        <label className={labelClass}>Guardian Contact</label>
         <input
           name="guardian_contact"
           value={form.guardian_contact}
@@ -183,11 +186,11 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
           maxLength={100}
           className={inputClass('guardian_contact')}
         />
-        {errors.guardian_contact && <p className="text-red-500 text-sm mt-1">{errors.guardian_contact}</p>}
+        {errors.guardian_contact && <p className="text-red-600 text-xs mt-1.5">{errors.guardian_contact}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+        <label className={labelClass}>Start Date</label>
         <input
           type="date"
           name="start_date"
@@ -197,17 +200,17 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
           onChange={handleChange}
           className={inputClass('start_date')}
         />
-        {errors.start_date && <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>}
+        {errors.start_date && <p className="text-red-600 text-xs mt-1.5">{errors.start_date}</p>}
       </div>
 
       {initialData && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className={labelClass}>Status</label>
           <select
             name="status"
             value={form.status}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border-b-2 border-ink/15 px-1 py-2 bg-transparent focus:outline-none focus:border-gold transition"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -215,19 +218,19 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
         </div>
       )}
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-3">
         <button
           type="submit"
           disabled={submitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-ink text-white px-5 py-2.5 rounded-sm hover:bg-gold transition font-medium text-sm tracking-wide disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {submitting ? 'Saving...' : initialData ? 'Update' : 'Add Learner'}
+          {submitting ? 'Saving...' : initialData ? 'Update Learner' : 'Add Learner'}
         </button>
         <button
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition disabled:opacity-50"
+          className="text-slate/60 px-5 py-2.5 hover:text-ink transition font-medium text-sm disabled:opacity-40"
         >
           Cancel
         </button>
