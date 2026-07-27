@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function LearnerForm({ initialData, onSubmit, onCancel }) {
   const [form, setForm] = useState({
@@ -10,10 +10,6 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
     status: 'active',
   });
 
-  useEffect(() => {
-    if (initialData) setForm(initialData);
-  }, [initialData]);
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -22,6 +18,7 @@ export default function LearnerForm({ initialData, onSubmit, onCancel }) {
     e.preventDefault();
     onSubmit(form);
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4 max-w-md">
