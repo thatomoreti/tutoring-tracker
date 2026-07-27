@@ -63,10 +63,7 @@ export default function LearnersPage() {
   return (
     <div className="max-w-5xl mx-auto p-8">
       <div className="flex justify-between items-end mb-8 pb-4 border-b-2 border-gold">
-        <div>
-          <p className="text-xs uppercase tracking-widest text-gold font-semibold mb-1">Rutegang Tutoring</p>
-          <h1 className="text-3xl font-display font-bold text-ink">Learners</h1>
-        </div>
+        <h1 className="text-3xl font-display font-bold text-ink">Learners</h1>
         {!showForm && (
           <button
             onClick={handleAdd}
