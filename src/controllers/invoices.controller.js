@@ -24,7 +24,11 @@ exports.getInvoiceById = async (req, res, next) => {
     const [invoiceRows] = await pool.query('SELECT * FROM invoices WHERE invoice_id = ?', [req.params.id]);
     if (invoiceRows.length === 0) return res.status(404).json({ message: 'Invoice not found' });
     const [lineItems] = await pool.query('SELECT * FROM invoice_line_items WHERE invoice_id = ?', [req.params.id]);
-    res.json({ ...invoiceRows[0], line_items: lineItems });
+    const [[{ total_paid }]] = await pool.query(
+      'SELECT COALESCE(SUM(amount), 0) AS total_paid FROM payments WHERE invoice_id = ?',
+      [req.params.id]
+    );
+    res.json({ ...invoiceRows[0], total_paid, line_items: lineItems });
   } catch (err) {
     next(err);
   }
@@ -35,13 +39,31 @@ exports.createInvoice = async (req, res, next) => {
   const connection = await pool.getConnection();
   try {
     const { learner_id, period_start, period_end, due_date } = req.body;
-    if (!learner_id || !period_start || !period_end || !due_date) {
-      return res.status(400).json({ message: 'learner_id, period_start, period_end, and due_date are required' });
+
+    const validationErrors = [];
+    if (!learner_id) validationErrors.push('learner_id is required');
+    if (!period_start) validationErrors.push('period_start is required');
+    if (!period_end) validationErrors.push('period_end is required');
+    if (!due_date) validationErrors.push('due_date is required');
+
+    if (period_start && period_end && period_end < period_start) {
+      validationErrors.push('period_end must be on or after period_start');
+    }
+    if (due_date && period_end && due_date < period_end) {
+      validationErrors.push('due_date must be on or after period_end');
+    }
+
+    if (learner_id) {
+      const [learnerRows] = await pool.query('SELECT learner_id FROM learners WHERE learner_id = ?', [learner_id]);
+      if (learnerRows.length === 0) validationErrors.push('learner_id does not reference an existing learner');
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ message: 'Validation failed', errors: validationErrors });
     }
 
     await connection.beginTransaction();
 
-    // Pull sessions in range not yet billed (no existing line item referencing them)
     const [sessions] = await connection.query(
       `SELECT s.session_id, s.duration_minutes, s.session_date, sub.subject_name, sub.hourly_rate
        FROM sessions s

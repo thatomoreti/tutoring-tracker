@@ -1,5 +1,79 @@
 const pool = require('../config/db');
 
+const PAYMENT_METHODS = ['cash', 'eft', 'card', 'other'];
+const AMOUNT_REGEX = /^\d+(\.\d{1,2})?$/;
+
+async function validatePaymentInput(data) {
+  const errors = [];
+  const { invoice_id, learner_id, amount, payment_date, payment_method, reference_number } = data;
+
+  let invoice = null;
+
+  if (!invoice_id) {
+    errors.push('invoice_id is required');
+  } else {
+    const [rows] = await pool.query('SELECT * FROM invoices WHERE invoice_id = ?', [invoice_id]);
+    if (rows.length === 0) {
+      errors.push('invoice_id does not reference an existing invoice');
+    } else {
+      invoice = rows[0];
+    }
+  }
+
+  if (!learner_id) {
+    errors.push('learner_id is required');
+  } else if (invoice && Number(learner_id) !== invoice.learner_id) {
+    errors.push('learner_id does not match the learner on this invoice');
+  }
+
+  if (amount === undefined || amount === null || amount === '') {
+    errors.push('amount is required');
+  } else {
+    const amountStr = String(amount);
+    const amountNum = Number(amount);
+    if (!AMOUNT_REGEX.test(amountStr)) {
+      errors.push('amount can have at most 2 decimal places');
+    } else if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      errors.push('amount must be greater than 0');
+    } else if (invoice) {
+      const [[{ total_paid }]] = await pool.query(
+        'SELECT COALESCE(SUM(amount), 0) AS total_paid FROM payments WHERE invoice_id = ?',
+        [invoice_id]
+      );
+      const remaining = Number(invoice.total_amount) - Number(total_paid);
+      if (amountNum > remaining + 0.01) { // small epsilon for float rounding
+        errors.push(`amount cannot exceed the outstanding balance (${remaining.toFixed(2)})`);
+      }
+    }
+  }
+
+  if (!payment_date) {
+    errors.push('payment_date is required');
+  } else {
+    const today = new Date().toISOString().slice(0, 10);
+    if (payment_date > today) {
+      errors.push('payment_date cannot be in the future');
+    } else if (invoice) {
+      const issuedDate = invoice.issued_date.toISOString().slice(0, 10);
+      if (payment_date < issuedDate) {
+        errors.push(`payment_date cannot be before the invoice's issued date (${issuedDate})`);
+      }
+    }
+  }
+
+  if (!payment_method) {
+    errors.push('payment_method is required');
+  } else if (!PAYMENT_METHODS.includes(payment_method)) {
+    errors.push(`payment_method must be one of: ${PAYMENT_METHODS.join(', ')}`);
+  }
+
+  if (reference_number !== undefined && reference_number !== null && reference_number.length > 50) {
+    errors.push('reference_number must be under 50 characters');
+  }
+
+  return errors;
+}
+
 exports.getAllPayments = async (req, res, next) => {
   try {
     const { learner_id } = req.query;
@@ -29,21 +103,20 @@ exports.getPaymentById = async (req, res, next) => {
   }
 };
 
-// Records a payment and updates the related invoice's status
 exports.createPayment = async (req, res, next) => {
   const connection = await pool.getConnection();
   try {
+    const errors = await validatePaymentInput(req.body);
+    if (errors.length > 0) return res.status(400).json({ message: 'Validation failed', errors });
+
     const { invoice_id, learner_id, amount, payment_date, payment_method, reference_number, notes } = req.body;
-    if (!invoice_id || !learner_id || !amount || !payment_date || !payment_method) {
-      return res.status(400).json({ message: 'invoice_id, learner_id, amount, payment_date, and payment_method are required' });
-    }
 
     await connection.beginTransaction();
 
     const [result] = await connection.query(
       `INSERT INTO payments (invoice_id, learner_id, amount, payment_date, payment_method, reference_number, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [invoice_id, learner_id, amount, payment_date, payment_method, reference_number, notes]
+      [invoice_id, learner_id, amount, payment_date, payment_method, reference_number?.trim() || null, notes]
     );
 
     const [[invoice]] = await connection.query('SELECT total_amount FROM invoices WHERE invoice_id = ?', [invoice_id]);

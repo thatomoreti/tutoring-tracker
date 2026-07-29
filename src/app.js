@@ -11,6 +11,7 @@ app.use('/api/sessions', require('./routes/sessions.routes'));
 app.use('/api/progress', require('./routes/progress.routes'));
 app.use('/api/invoices', require('./routes/invoices.routes'));
 app.use('/api/payments', require('./routes/payments.routes'));
+app.use('/api/reports', require('./routes/reports.routes'));
 
 app.use(require('./middleware/errorHandler'));
 
