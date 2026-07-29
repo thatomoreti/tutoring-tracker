@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getDashboardStats } from '../api/reports';
-
+import { usePageTitle } from '../hooks/usePageTitles';
 export default function DashboardPage() {
+    usePageTitle('Dashboard');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,6 +13,8 @@ export default function DashboardPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+ 
 
   const cards = stats
     ? [

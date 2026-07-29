@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getInvoices, generateInvoice } from '../api/invoices';
+import { usePageTitle } from '../hooks/usePageTitles';
 import GenerateInvoiceForm from '../components/GenerateInvoiceForm';
 import InvoiceModal from '../components/InvoiceModal';
 
 export default function InvoicesPage() {
+    usePageTitle('Invoices');
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

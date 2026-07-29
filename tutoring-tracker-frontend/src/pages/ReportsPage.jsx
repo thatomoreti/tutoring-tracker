@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { usePageTitle } from '../hooks/usePageTitles';
 import { getBalances, getRevenueByMonth, getAttendanceSummary } from '../api/reports';
 
 export default function ReportsPage() {
+    usePageTitle('Reports');
   const [balances, setBalances] = useState([]);
   const [revenue, setRevenue] = useState([]);
   const [attendance, setAttendance] = useState([]);

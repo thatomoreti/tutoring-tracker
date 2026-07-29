@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSessions, createSession, updateSession, deleteSession } from '../api/sessions';
+import { usePageTitle } from '../hooks/usePageTitles';
 import SessionForm from '../components/SessionForm';
 
 function formatDuration(minutes) {
@@ -11,6 +12,7 @@ function formatDuration(minutes) {
 }
 
 export default function SessionsPage() {
+  usePageTitle('Sessions');
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

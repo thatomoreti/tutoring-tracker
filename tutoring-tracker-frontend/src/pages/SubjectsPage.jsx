@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getSubjects, createSubject, updateSubject, deleteSubject } from '../api/subjects';
+import { usePageTitle } from '../hooks/usePageTitles';
 import SubjectForm from '../components/SubjectForm';
 
 export default function SubjectsPage() {
+  usePageTitle('Subjects');
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

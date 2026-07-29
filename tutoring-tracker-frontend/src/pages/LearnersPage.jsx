@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getLearners, createLearner, updateLearner, deleteLearner } from '../api/learners';
+import { usePageTitle } from '../hooks/usePageTitles';
 import LearnerForm from '../components/LearnerForm';
 
 export default function LearnersPage() {
+  usePageTitle('Learners');
   const [learners, setLearners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
