@@ -13,10 +13,12 @@ function formatDuration(minutes) {
   return `${hrs} hr${hrs > 1 ? 's' : ''} ${mins} min`;
 }
 
-function validate(form) {
+function validate(form, learners) {
   const errors = {};
 
-  if (!form.learner_id) errors.learner_id = 'Please select a learner';
+  if (!form.learner_id) {
+    errors.learner_id = 'Please select a learner';
+  }
   if (!form.subject_id) errors.subject_id = 'Please select a subject';
 
   if (!form.session_date) {
@@ -25,11 +27,19 @@ function validate(form) {
     const today = new Date().toISOString().slice(0, 10);
     if (form.session_date > today) {
       errors.session_date = 'Session date cannot be in the future';
+    } else if (form.learner_id) {
+      const learner = learners.find((l) => String(l.learner_id) === String(form.learner_id));
+      const learnerStart = learner?.start_date?.slice(0, 10);
+      if (learnerStart && form.session_date < learnerStart) {
+        errors.session_date = `Session date can't be before this learner's start date (${learnerStart})`;
+      }
     }
   }
 
   if (!form.duration_minutes) {
     errors.duration_minutes = 'Please select a duration';
+  } else if (!DURATION_OPTIONS.includes(Number(form.duration_minutes))) {
+    errors.duration_minutes = 'Invalid duration selected';
   }
 
   if (form.notes && form.notes.length > MAX_NOTES_LENGTH) {
@@ -64,17 +74,33 @@ export default function SessionForm({ initialData, onSubmit, onCancel }) {
       .finally(() => setLoadingOptions(false));
   }, []);
 
+  const selectedLearner = learners.find((l) => String(l.learner_id) === String(form.learner_id));
+  const minSessionDate = selectedLearner?.start_date?.slice(0, 10);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
     if (errors[name]) {
       setErrors({ ...errors, [name]: undefined });
     }
+    // Re-check date validity if learner changes and a date is already set
+    if (name === 'learner_id' && errors.session_date) {
+      setErrors({ ...errors, session_date: undefined });
+    }
+  };
+
+  const handleNotesChange = (e) => {
+    // Hard cap even on paste — slice regardless of how the value arrived
+    const value = e.target.value.slice(0, MAX_NOTES_LENGTH);
+    setForm({ ...form, notes: value });
+    if (errors.notes) {
+      setErrors({ ...errors, notes: undefined });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate(form);
+    const validationErrors = validate(form, learners);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -149,11 +175,15 @@ export default function SessionForm({ initialData, onSubmit, onCancel }) {
         <input
           type="date"
           name="session_date"
+          min={minSessionDate}
           max={new Date().toISOString().slice(0, 10)}
           value={form.session_date}
           onChange={handleChange}
           className={inputClass('session_date')}
         />
+        {minSessionDate && !errors.session_date && (
+          <p className="text-xs text-slate/40 mt-1">Learner started {minSessionDate}</p>
+        )}
         {errors.session_date && <p className="text-red-600 text-xs mt-1.5">{errors.session_date}</p>}
       </div>
 
@@ -190,7 +220,7 @@ export default function SessionForm({ initialData, onSubmit, onCancel }) {
         <textarea
           name="notes"
           value={form.notes}
-          onChange={handleChange}
+          onChange={handleNotesChange}
           maxLength={MAX_NOTES_LENGTH}
           rows={3}
           placeholder="What was covered in this session..."
